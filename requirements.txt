@@ -2,7 +2,7 @@
 -e .
 
 # external requirements
-click
+click~=8.1.3
 Sphinx
 coverage
 # awscli
@@ -11,7 +11,7 @@ python-dotenv>=0.5.1
 
 # smithers
 huggingface_hub>=0.14.1
-git+https://github.com/huggingface/transformers@v4.29.0
+git+https://github.com/huggingface/transformers
 langchain>=0.0.215
 diffusers
 accelerate
@@ -19,8 +19,24 @@ datasets
 torch
 soundfile
 sentencepiece
-opencv-python
-openai
+openai==1.2.0
+
+google-auth>=2.23.4
 google-api-python-client
 google-auth-httplib2
 google-auth-oauthlib
+
+termcolor~=2.3.0
+setuptools==68.2.2
+pytz>=2021.3
+numexpr
+tiktoken
+
+git+https://github.com/huggingface/peft.git
+bitsandbytes
+trl
+py7zr
+auto-gptq
+optimum
+flash-attn
+wandb
