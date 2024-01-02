@@ -8,18 +8,24 @@ coverage
 # awscli
 flake8
 python-dotenv>=0.5.1
+pydantic>=1.4.0,<2
+jsonpath-ng
+pyjsonpath
 
 # smithers
 huggingface_hub>=0.14.1
-git+https://github.com/huggingface/transformers
+transformers>=4.36.2
+#git+https://github.com/huggingface/transformers
 langchain>=0.0.215
+langchain-community>=0.0.7
+loguru
 diffusers
 accelerate
 datasets
 torch
 soundfile
 sentencepiece
-openai==1.2.0
+openai>=1.6.1
 
 google-auth>=2.23.4
 google-api-python-client
@@ -32,11 +38,16 @@ pytz>=2021.3
 numexpr
 tiktoken
 
-git+https://github.com/huggingface/peft.git
+# git+https://github.com/huggingface/peft.git
+peft
 bitsandbytes
 trl
 py7zr
-auto-gptq
-optimum
-flash-attn
 wandb
+distilabel
+
+# only on NVidia GPU-enabled machines
+
+# auto-gptq
+# optimum
+# flash-attn

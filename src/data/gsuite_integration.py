@@ -206,13 +206,30 @@ class GmailTool(BaseTool):
         return self._run(query, label_ids, max_results)
 
 
-def get_calendar_events(hours_from_now: int, max_results: int = 10, fields: str = "*", calendar_id: str = 'primary'):
+def get_calendar_events(time_min: str = None,
+                        time_max: str = None,
+                        max_results: int = 10,
+                        fields: str = "*",
+                        calendar_id: str = 'primary'):
+    """
+    Returns a list of events on the user's primary calendar, starting from the (current time + hours_from_now)
+    and going forward, up to a total of max_results events.
+    :param time_min: time-range filter for events to return. Must be an RFC3339 timestamp with mandatory time zone
+     offset, for example, 2011-06-03T10:00:00-07:00
+    :param time_max: time-range filter for events to return. Must be an RFC3339 timestamp with mandatory time zone
+     offset, for example, 2011-06-03T10:00:00-07:00
+    :param max_results: the maximum number of results to return
+    :param fields: the fields to return for each event
+    :param calendar_id: the calendar ID to search
+    :return: a list of events
+    """
     credentials = authenticate_google_api()
-    time_min = (datetime.utcnow() + timedelta(hours=int(hours_from_now))).isoformat() + 'Z'
     service = google_services.build('calendar', 'v3', credentials=credentials)
+    time_min = time_min or datetime.utcnow().isoformat() + 'Z'
     results = service.events().list(
         calendarId=calendar_id,
         timeMin=time_min,
+        timeMax=time_max,
         maxResults=max_results,
         singleEvents=True,
         orderBy='startTime',
