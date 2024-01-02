@@ -79,7 +79,8 @@ class MemoryStorageTool(Tool):
             raise ImportError("Using `OpenAiAgent` requires `openai`: `pip install openai`.")
 
         if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY", None)
+            # api_key = os.environ.get("OPENAI_API_KEY", None)
+            api_key = os.getenv('OPENAI_API_KEY')
         if api_key is None:
             raise ValueError(
                 "You need an openai key to use `OpenAIAgent`. You can get one here: Get one here "

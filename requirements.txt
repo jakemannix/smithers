@@ -36,7 +36,7 @@ git+https://github.com/huggingface/peft.git
 bitsandbytes
 trl
 py7zr
-auto-gptq
+# auto-gptq
 optimum
-flash-attn
+# flash-attn
 wandb

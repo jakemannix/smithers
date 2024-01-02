@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 import os
+from dotenv import load_dotenv
 
 from langchain.agents import ZeroShotAgent, Tool, AgentExecutor
 from langchain.base_language import BaseLanguageModel
@@ -15,10 +16,15 @@ from ..data.gsuite_integration import *
 
 @dataclass
 class AgentConfig:
-    google_api_key: str = os.environ['GOOGLE_API_KEY']
-    google_csi_key: str = os.environ['GOOGLE_CSI_KEY']
-    bing_api_key: str = os.environ['BING_SUBSCRIPTION_KEY']
-    bing_api_url: str = "https://api.bing.microsoft.com/bing/v7.0/search"
+    google_api_key: str = os.getenv('GOOGLE_API_KEY')
+    google_csi_key: str = os.getenv('GOOGLE_CSI_KEY')
+    bing_api_key: str = os.getenv('BING_SUBSCRIPTION_KEY')
+    bing_api_url: str = os.getenv('BING_SEARCH_URL')
+
+    # google_api_key: str = os.environ['GOOGLE_API_KEY']
+    # google_csi_key: str = os.environ['GOOGLE_CSI_KEY']
+    # bing_api_key: str = os.environ['BING_SUBSCRIPTION_KEY']
+    # bing_api_url: str = "https://api.bing.microsoft.com/bing/v7.0/search"
     prefix: str = """
             Have a conversation with a human, answering the following questions as best you can.
             You have access to the following tools:
@@ -79,6 +85,7 @@ def build_tools(config: AgentConfig, llm: BaseLanguageModel):
 
 
 def build_search_agent(config: AgentConfig):
+    load_dotenv()
     llm = OpenAI(temperature=0)
     tools = load_tools(["llm-math"], llm=llm) + build_tools(config, llm=llm)
 
@@ -100,6 +107,8 @@ def build_search_agent(config: AgentConfig):
 # required:
 # export GOOGLE_API_KEY=
 # export GOOGLE_CSI_KEY=
+
+
 # export OPENAI_API_KEY=
 # export BING_SUBSCRIPTION_KEY=
 # export BING_SEARCH_URL=
