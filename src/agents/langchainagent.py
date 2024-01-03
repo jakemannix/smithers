@@ -4,6 +4,7 @@ import os
 
 from langchain.agents import ZeroShotAgent, Tool, initialize_agent, AgentType, AgentExecutor
 from pydantic import BaseModel, Field, BaseSettings
+from langchain.prompts import MessagesPlaceholder
 from langchain.memory import ConversationBufferMemory
 from langchain.agents import load_tools
 from langchain.chains import LLMMathChain, ConversationChain
@@ -174,8 +175,9 @@ def build_agent(config: AgentConfig) -> AgentExecutor:
         suffix=config.suffix,
         input_variables=config.input_variables,
     )
-    memory = ConversationBufferMemory(llm=llm, memory_key=config.memory_key, return_messages=True,
-                                      max_token_length=4096)
+    chat_history = MessagesPlaceholder(variable_name="chat_history")
+    memory = ConversationBufferMemory(llm=llm, memory_key=config.memory_key,
+                                      return_messages=True, max_token_length=4096)
     # conversation = ConversationChain(memory=memory, llm=llm, verbose=config.debug)
     # llm_chain = LLMChain(llm=llm, prompt=prompt)
     # agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True)
@@ -185,6 +187,7 @@ def build_agent(config: AgentConfig) -> AgentExecutor:
                                                   memory=memory,
                                                   verbose=True,
                                                   agent_kwargs={
+                                                      "memory_prompts": [chat_history],
                                                       "input_variables": config.input_variables
                                                   },
                                                   callbacks=[handler])
