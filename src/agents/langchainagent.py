@@ -2,13 +2,12 @@ from dataclasses import dataclass, field
 from typing import List, Type
 import os
 
-from langchain.agents import ZeroShotAgent, Tool, initialize_agent, AgentType
+from langchain.agents import ZeroShotAgent, Tool, initialize_agent, AgentType, AgentExecutor
 from pydantic import BaseModel, Field, BaseSettings
 from langchain.memory import ConversationBufferMemory
 from langchain.agents import load_tools
-from langchain.chains import LLMMathChain
+from langchain.chains import LLMMathChain, ConversationChain
 from langchain.globals import set_debug
-from langchain import OpenAI, LLMChain
 from langchain.chat_models import ChatOpenAI
 from langchain.utilities import GoogleSerperAPIWrapper
 from langchain.callbacks import FileCallbackHandler
@@ -21,11 +20,14 @@ from ..data.gsuite_integration import *
 
 @dataclass
 class AgentConfig:
-    # serper_api_key: str = os.environ['SERPER_API_KEY'] if 'SERPER_API_KEY' in os.environ else None
-    google_api_key: str = os.environ['GOOGLE_API_KEY']
-    google_csi_key: str = os.environ['GOOGLE_CSI_KEY']
-    bing_api_key: str = os.environ['BING_SUBSCRIPTION_KEY']
-    bing_api_url: str = "https://api.bing.microsoft.com/bing/v7.0/search"
+    serper_api_key: str = os.getenv('SERPER_API_KEY')
+    google_api_key: str = os.getenv('GOOGLE_API_KEY')
+    google_csi_key: str = os.getenv('GOOGLE_CSI_KEY')
+    bing_api_key: str = os.getenv('BING_SUBSCRIPTION_KEY')
+    bing_api_url: str = os.getenv('BING_SEARCH_URL')
+
+    debug: bool = bool(os.getenv("DEBUG", "False"))
+
     prefix: str = """
             Have a conversation with a human, answering the following questions as best you can.
             You have access to the following tools:
@@ -39,7 +41,6 @@ class AgentConfig:
     input_variables: List[str] = field(default_factory=lambda: ["input", "chat_history", "agent_scratchpad"])
     logfile: str = "agent.log"
     llm_temperature: float = 0.0
-    debug: bool = False
 
 
 def build_math_tool(llm: BaseLanguageModel):
@@ -128,7 +129,6 @@ def build_tools(config: AgentConfig, llm: BaseLanguageModel):
     ]
     if config.serper_api_key:
         # need to figure out how to make sure this works
-        os.environ['SERPER_API_KEY'] = config.serper_api_key
         search = GoogleSerperAPIWrapper(serper_api_key=config.serper_api_key)
         tools.append(
             Tool(
@@ -158,7 +158,7 @@ def build_tools(config: AgentConfig, llm: BaseLanguageModel):
     return tools
 
 
-def build_search_agent(config: AgentConfig):
+def build_agent(config: AgentConfig) -> AgentExecutor:
     logger.add(config.logfile, colorize=False, enqueue=True)
     set_debug(config.debug)
     handler = FileCallbackHandler(config.logfile)
@@ -166,7 +166,7 @@ def build_search_agent(config: AgentConfig):
     llm = ChatOpenAI(model="gpt-3.5-turbo-16k",
                      temperature=config.llm_temperature,
                      verbose=True)
-    tools = load_tools(["llm-math", "human"], llm=llm) + build_tools(config, llm=llm)
+    tools = load_tools(["llm-math"], llm=llm) + build_tools(config, llm=llm)
 
     prompt = ZeroShotAgent.create_prompt(
         tools,
@@ -174,33 +174,22 @@ def build_search_agent(config: AgentConfig):
         suffix=config.suffix,
         input_variables=config.input_variables,
     )
-    memory = ConversationBufferMemory(llm=llm, memory_key=config.memory_key, max_token_length=4096)
+    memory = ConversationBufferMemory(llm=llm, memory_key=config.memory_key, return_messages=True,
+                                      max_token_length=4096)
+    # conversation = ConversationChain(memory=memory, llm=llm, verbose=config.debug)
     # llm_chain = LLMChain(llm=llm, prompt=prompt)
     # agent = ZeroShotAgent(llm_chain=llm_chain, tools=tools, verbose=True)
-    agent_chain = initialize_agent(tools=tools,
-                                   llm=llm,
-                                   agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
-                                   memory=memory,
-                                   verbose=True,
-                                   agent_kwargs={
-                                       "input_variables": config.input_variables
-                                   },
-                                   callbacks=[handler])
+    agent_chain: AgentExecutor = initialize_agent(tools=tools,
+                                                  llm=llm,
+                                                  agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+                                                  memory=memory,
+                                                  verbose=True,
+                                                  agent_kwargs={
+                                                      "input_variables": config.input_variables
+                                                  },
+                                                  callbacks=[handler])
     agent_chain.agent.llm_chain.verbose = True
     # agent_chain = AgentExecutor.from_agent_and_tools(
     #     agent=agent, tools=tools, verbose=True, memory=memory, callbacks=[handler]
     # )
     return agent_chain
-
-
-# required:
-# export GOOGLE_API_KEY=
-# export GOOGLE_CSI_KEY=
-# export OPENAI_API_KEY=
-# export BING_SUBSCRIPTION_KEY=
-# export BING_SEARCH_URL=
-#
-# ...
-#
-# agent_chain = build_search_agent(AgentConfig())
-# agent_chain.run(input="How many people live in the United States?")
