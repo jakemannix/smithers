@@ -15,7 +15,7 @@ def smithers_loop():
         line = input()
         if line == 'exit'.strip().casefold():
             break
-        build_and_run_search_agent(line)
+        build_and_run_search_agent(line.strip())
 
 
 def search_cli():
