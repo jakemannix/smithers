@@ -11,7 +11,7 @@ def build_and_run_search_agent(query: str):
 def smithers_loop():
     line = ''
     while True:
-        print('What would you like to ask?')
+        print('What would you like to ask? (type "exit" to quit)')
         line = input()
         if line == 'exit'.strip().casefold():
             break
