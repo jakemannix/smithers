@@ -127,7 +127,8 @@ def build_tools(config: AgentConfig, llm: BaseLanguageModel):
         build_time_tool()
     ]
     if config.serper_api_key:
-        os.environ['SERBER_API_KEY'] = config.serper_api_key
+        # need to figure out how to make sure this works
+        os.environ['SERPER_API_KEY'] = config.serper_api_key
         search = GoogleSerperAPIWrapper(serper_api_key=config.serper_api_key)
         tools.append(
             Tool(
