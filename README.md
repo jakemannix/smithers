@@ -32,5 +32,9 @@ BING_SEARCH_URL=https://api.bing.microsoft.com/bing/v7.0/search
 ## Run
 ### Once installed you can run smithers using the following command
 ```shell
-smithers-search "Something I want to know"
+smithers
+What would you like to ask? (type "exit" to quit). Go!
+What's my name?
+[chain/start] [1:chain:AgentExecutor] Entering Chain run with input:
+...
 ```
