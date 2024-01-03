@@ -10,6 +10,7 @@ from langchain.chains import LLMMathChain
 from langchain.globals import set_debug
 from langchain import OpenAI, LLMChain
 from langchain.chat_models import ChatOpenAI
+from langchain.utilities import GoogleSerperAPIWrapper
 from langchain.callbacks import FileCallbackHandler
 from loguru import logger
 from langchain.utilities import GoogleSearchAPIWrapper, BingSearchAPIWrapper
@@ -20,6 +21,7 @@ from ..data.gsuite_integration import *
 
 @dataclass
 class AgentConfig:
+    # serper_api_key: str = os.environ['SERPER_API_KEY'] if 'SERPER_API_KEY' in os.environ else None
     google_api_key: str = os.environ['GOOGLE_API_KEY']
     google_csi_key: str = os.environ['GOOGLE_CSI_KEY']
     bing_api_key: str = os.environ['BING_SUBSCRIPTION_KEY']
@@ -37,6 +39,7 @@ class AgentConfig:
     input_variables: List[str] = field(default_factory=lambda: ["input", "chat_history", "agent_scratchpad"])
     logfile: str = "agent.log"
     llm_temperature: float = 0.0
+    debug: bool = False
 
 
 def build_math_tool(llm: BaseLanguageModel):
@@ -123,6 +126,16 @@ def build_tools(config: AgentConfig, llm: BaseLanguageModel):
         build_calendar_tool(),
         build_time_tool()
     ]
+    if config.serper_api_key:
+        os.environ['SERBER_API_KEY'] = config.serper_api_key
+        search = GoogleSerperAPIWrapper(serper_api_key=config.serper_api_key)
+        tools.append(
+            Tool(
+                name="Google Search",
+                func=search.run,
+                description="useful for when you need to search the web using Google"
+            )
+        )
     if config.google_api_key and config.google_csi_key:
         google_search = GoogleSearchAPIWrapper()
         tools.append(
@@ -132,7 +145,7 @@ def build_tools(config: AgentConfig, llm: BaseLanguageModel):
                 description="useful for when you need to answer questions about current events"
             )
         )
-    if config.bing_api_key:
+    if config.bing_api_key and False:
         bing_search = BingSearchAPIWrapper()
         tools.append(
             Tool(
@@ -146,7 +159,7 @@ def build_tools(config: AgentConfig, llm: BaseLanguageModel):
 
 def build_search_agent(config: AgentConfig):
     logger.add(config.logfile, colorize=False, enqueue=True)
-    set_debug(True)
+    set_debug(config.debug)
     handler = FileCallbackHandler(config.logfile)
 
     llm = ChatOpenAI(model="gpt-3.5-turbo-16k",
