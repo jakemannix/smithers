@@ -1,4 +1,5 @@
 import argparse
+from dotenv import load_dotenv
 
 from src.agents.langchainagent import AgentConfig, build_search_agent
 
@@ -26,4 +27,5 @@ def search_cli():
     # parser.add_argument('search', type=str,
     #                     help='something you would like to look up')
     # args = parser.parse_args()
+    load_dotenv()
     smithers_loop()

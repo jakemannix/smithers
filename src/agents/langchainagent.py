@@ -1,7 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List
 import os
-from dotenv import load_dotenv
 
 from langchain.agents import ZeroShotAgent, Tool, AgentExecutor
 from langchain.base_language import BaseLanguageModel
@@ -85,7 +84,6 @@ def build_tools(config: AgentConfig, llm: BaseLanguageModel):
 
 
 def build_search_agent(config: AgentConfig):
-    load_dotenv()
     llm = OpenAI(temperature=0)
     tools = load_tools(["llm-math"], llm=llm) + build_tools(config, llm=llm)
 
