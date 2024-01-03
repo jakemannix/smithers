@@ -19,6 +19,16 @@ windows powershell:
 pip install -r requirements.txt
 ```
 
+### Next create a .env file in the project's root directory for the API keys used for the toolchain
+#### The file contents should look like the following where <some_key> is the API key from that provider
+```env
+OPENAI_API_KEY=<some_key>
+GOOGLE_API_KEY=<some_key>
+GOOGLE_CSI_KEY=<some_key>
+BING_SUBSCRIPTION_KEY=<some_key>
+BING_SEARCH_URL=https://api.bing.microsoft.com/bing/v7.0/search
+```
+
 ## Run
 ### Once installed you can run smithers using the following command
 ```shell
